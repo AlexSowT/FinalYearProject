@@ -1,0 +1,17 @@
+-	Will be created using C++, SDL and Open_GL. This will be done so I can do matrix calculations on the GPU via shaders. Also using C++ will allow me to fine tune performance. SDL will be used to communication between hardware and Open_GL.
+-	MVP goals: 
+o	Create a rendering system to display 2D sprites and a tilemap. The 2D sprites will not need to be applied to a physics system, as their movement will be from tile to tile. The tilemap needs to be modifiable during runtime to allow for buildings and such to be put on top. 
+o	Create a simple camera that has function to move around the map with mouse/keyboard controls and can zoom in and out. 
+o	Create a simple UI system that consists of a render layer that renders separately to the game layer and uses screen cords to render text and UI elements where needed. 
+o	Create a neural net system that runs for each individual and defines what they want to do in a simulation step. EG. Person A is hungry -> The net decides they should eat.
+	Define inputs to the net. This will be things like current emotions, sensory information, meta information (distance to food, amount of food in storage, number of homes…)
+o	Create a system in which the net can evolve to include new potential decisions. The new potential decisions are what I will call the Gene Pool. The new evolutions can either be random, or player defined using some sort of evolution point. EG. One person has a child and this child randomly develops the idea to climb trees, this allows them to see further. OR. The player knows there is going to be a snow storm soon, and so forces the decision to Build a Home onto their species. OR. The player knows there is a snow storm, and so evolves a new characteristic, resistance to cold. 
+o	Create a world generation that’s able generate a random world and to create natural disasters that the player must work around. EG. Volcanos, Snow storms, desert/lack of food and water, high predator environments. 
+o	Source/Create some basic sprites that display the required information. This includes things like: Characters, environment, buildings, items.. 
+-	Extra Goals: 
+o	Create a world generation algorithm that can handle different kind of biomes
+o	Create a layered tilemap so that more then one elevation can be created. Look at dwarf fortress for what I mean. 
+o	Expand the UI system to allow for animations
+o	Expand the UI system to allow for anchoring elements to screen positions rather then exact cords. This will allow for a resizable screen. 
+o	Create a species creation screen. This must allow the player to define some initial characteristics eg: height, metabolism, count of eyes… It must also allow the player to define an initial decision net, eg: the species knows how to dig underground, build a home, search for food, fight. This initial species creation will be capped with a points system, where some characterists will add to the total and some will subtract.
+o	Create a level in which the species must survive a natural disaster that is coming in 100 years. 
