@@ -8,23 +8,23 @@
 #include<gtc/matrix_transform.hpp>
 #include<gtc/type_ptr.hpp>
 #include "Shader.h"
+#include "Camera.h"
 
-const GLuint WIDTH = 800, HEIGHT = 600;
+// TODO: Make ZOOM work with any aspect ratio
+const GLuint WIDTH = 800, HEIGHT = 800;
 bool RUNNING = true;
+SDL_Event window_event;
+Camera camera(glm::vec3(WIDTH / 2, HEIGHT / 2, -700.0f), WIDTH, HEIGHT);
+
+void update(float deltaTime);
+void render(Shader shader, SDL_Window* window, GLuint VAO, GLuint texture);
 
 int main(int argc, char* argv[])
 {
-	const GLchar* vertexShaderSource = "#version 330 core\n"
-		"layout (location = 0) in vec3 position;\n"
-		"void main(){\n"
-		"gl_Position = vec4(position.x, position.y, position.z, 1.0);\n"
-		"}\0";
-
-	const GLchar* fragmentShaderSource = "#version 330 core\n"
-		"out vec4 color;\n"
-		"void main(){\n"
-		"color = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
-		"}\n\0";
+	// Reference: https://gamedev.stackexchange.com/questions/110825/how-to-calculate-delta-time-with-sdl 
+	Uint64 NOW = SDL_GetPerformanceCounter();
+	Uint64 LAST = 0;
+	double deltaTime = 0;
 
 	if (SDL_Init(SDL_INIT_VIDEO) > 0)
 	{
@@ -55,9 +55,12 @@ int main(int argc, char* argv[])
 	}
 
 	glViewport(0, 0, WIDTH, HEIGHT);
+
+	// OPENGL Flag Enablers
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+	glEnable(GL_DEPTH_TEST);
 
 	Shader ourShader("./src/vertShader.glsl", "./src/fragShader.glsl");
 
@@ -95,10 +98,11 @@ int main(int argc, char* argv[])
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)0);
 	glEnableVertexAttribArray(0);
 
-	// Color
+	// Color - TODO: This can be cleaned up and removed. Keeping here for example
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*) (3* sizeof(GLfloat)));
 	glEnableVertexAttribArray(1);
 
+	// Texture
 	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(6 * sizeof(GLfloat)));
 	glEnableVertexAttribArray(2);
 
@@ -129,46 +133,20 @@ int main(int argc, char* argv[])
 	{
 		std::cout << "Error loading grass texture" << std::endl;
 	}
-
-	SDL_Event window_event;
+	
 	float angle = 0;
-
+	//float zoom = 1;
 	while (RUNNING)
 	{
-		if (SDL_PollEvent(&window_event))
-		{
-			if (window_event.type == SDL_QUIT)
-			{
-				RUNNING = false;
-			}
-		}
+		// Reference: https://gamedev.stackexchange.com/questions/110825/how-to-calculate-delta-time-with-sdl 
+		LAST = NOW;
+		NOW = SDL_GetPerformanceCounter();
 
-		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
+		deltaTime = (double)((NOW - LAST) * 1000 / (double)SDL_GetPerformanceFrequency());
 
-		ourShader.Use();
+		update(deltaTime);
 
-
-		glm::mat4 transform = glm::mat4(1);
-		//transform = glm::translate(transform, glm::vec3(0.5f, -0.5f, 0.0f));
-		transform = glm::rotate(transform, angle, glm::vec3(0, 0, 1));
-		transform = glm::scale(transform, glm::vec3(2));
-		angle += 0.01;
-
-		//// Get matrix's uniform location and set matrix
-		GLint transformLocation = glGetUniformLocation(ourShader.Program, "transform");
-		glUniformMatrix4fv(transformLocation, 1, GL_FALSE, glm::value_ptr(transform));
-
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, texture);
-		glUniform1i(glGetUniformLocation(ourShader.Program, "ourTexture"
-		), 0);
-
-		glBindVertexArray(VAO);
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-		glBindVertexArray(0);
-
-		SDL_GL_SwapWindow(window);
+		render(ourShader, window, VAO, texture);
 	}
 
 	glDeleteVertexArrays(1, &VAO);
@@ -181,3 +159,86 @@ int main(int argc, char* argv[])
 
 	return 0;
 }
+
+void update(float deltaTime)
+{
+	if (SDL_PollEvent(&window_event))
+	{
+		if (window_event.type == SDL_QUIT)
+		{
+			RUNNING = false;
+		} else if (window_event.type == SDL_KEYDOWN)
+		{
+			switch (window_event.key.keysym.sym)
+			{
+			case SDLK_LEFT:
+				camera.ProcessKeyboard(LEFT, deltaTime);
+				break;
+			case SDLK_RIGHT:
+				camera.ProcessKeyboard(RIGHT, deltaTime);
+				break;
+
+			case SDLK_UP:
+				camera.ProcessKeyboard(FORWARD, deltaTime);
+				break;
+
+			case SDLK_DOWN:
+				camera.ProcessKeyboard(BACKWARD, deltaTime);
+				break;
+
+			default:
+				break;
+			}
+		} else if (window_event.type == SDL_MOUSEWHEEL)
+		{
+			camera.ProcessMouseScroll(window_event.wheel.y);
+		}
+	}
+}
+
+void render(Shader shader, SDL_Window* window, GLuint VAO, GLuint texture)
+{
+	GLint modelLoc = glGetUniformLocation(shader.Program, "model");
+	GLint viewLoc = glGetUniformLocation(shader.Program, "view");
+	GLint projectionLoc = glGetUniformLocation(shader.Program, "projection");
+
+	glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(camera.getViewMat()));
+	glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(camera.getProjectionMat()));
+
+	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	glActiveTexture(GL_TEXTURE0);
+
+	glBindTexture(GL_TEXTURE_2D, texture);
+	glUniform1i(glGetUniformLocation(shader.Program, "ourTexture"
+	), 0);
+
+	shader.Use();
+
+	glBindVertexArray(VAO);
+
+	glm::mat4 model = glm::mat4(1);
+
+	model = glm::translate(model, glm::vec3(100, 0, -100));
+	model = glm::scale(model, glm::vec3(70));
+
+	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+
+	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+	model = glm::mat4(1);
+
+	model = glm::translate(model, glm::vec3(30, 0, -100));
+	model = glm::scale(model, glm::vec3(70));
+
+	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+
+	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+
+	glBindVertexArray(0);
+
+	SDL_GL_SwapWindow(window);
+}
+
