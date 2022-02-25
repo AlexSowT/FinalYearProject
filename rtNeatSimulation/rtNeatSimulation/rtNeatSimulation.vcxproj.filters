@@ -43,10 +43,16 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="src\vertShader.glsl">
+    <None Include="src\vertShader_Color.glsl">
       <Filter>Source Files\shaders</Filter>
     </None>
-    <None Include="src\fragShader.glsl">
+    <None Include="src\fragShader_Color.glsl">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="src\fragShader_Texture.glsl">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="src\vertShader_Texture.glsl">
       <Filter>Source Files\shaders</Filter>
     </None>
   </ItemGroup>

@@ -10,11 +10,16 @@ Renderer::~Renderer()
 
 void Renderer::render(const std::shared_ptr<GameObject> object, Shader shader, glm::mat4 transformation)
 {
-	glActiveTexture(GL_TEXTURE0);
+	shader.Use();
 
-	glBindTexture(GL_TEXTURE_2D, object->get_texture());
-	glUniform1i(glGetUniformLocation(shader.Program, "ourTexture"
-	), 0);
+	if (object->get_textured())
+	{
+		glActiveTexture(GL_TEXTURE0);
+
+		glBindTexture(GL_TEXTURE_2D, object->get_texture());
+		glUniform1i(glGetUniformLocation(shader.Program, "ourTexture"
+		), 0);
+	}
 
 	glBindVertexArray(object->get_VAO());
 

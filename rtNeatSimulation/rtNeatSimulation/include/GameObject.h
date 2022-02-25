@@ -3,12 +3,14 @@
 #include <SDL_image.h>
 #include <glm.hpp>
 #include <gl/glew.h>
+#include <string>
 #include <vector>
+#include <stdexcept>
 
 class GameObject
 {
 public:
-	GameObject(std::vector<glm::vec3> p_vertices, std::vector<int> p_indices)
+	GameObject(std::vector<glm::vec3> vertices, std::vector<int> indices)
 	{
 		glGenVertexArrays(1, &m_VAO);
 		glGenBuffers(1, &m_VBO);
@@ -17,10 +19,10 @@ public:
 		glBindVertexArray(m_VAO);
 
 		glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
-		glBufferData(GL_ARRAY_BUFFER, p_vertices.size()*sizeof(glm::vec3), &p_vertices[0], GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, vertices.size()*sizeof(glm::vec3), &vertices[0], GL_STATIC_DRAW);
 
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, p_indices.size()* sizeof(int), &p_indices[0], GL_STATIC_DRAW);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size()* sizeof(int), &indices[0], GL_STATIC_DRAW);
 
 		// Position
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(GLfloat), (GLvoid*)0);
@@ -36,6 +38,10 @@ public:
 
 		glBindVertexArray(0);
 
+	}
+
+	GameObject(std::vector<glm::vec3> vertices, std::vector<int> indices, std::string texture_path) : GameObject(vertices, indices)
+	{
 		glGenTextures(1, &m_texture);
 		glBindTexture(GL_TEXTURE_2D, m_texture);
 
@@ -47,23 +53,23 @@ public:
 
 		SDL_Surface* m_surface;
 		m_surface = NULL;
-		m_surface = IMG_Load("./data/textures/grass.png");
-		// TODO: Destory Surface
+		m_surface = IMG_Load(texture_path.c_str());
 
 		if (m_surface == NULL)
 		{
-			std::cout << "Error loading surface texture" << std::endl;
+			throw std::invalid_argument("Texture filepath could not be loaded");
 		}
-		else
-		{
 
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 64, 64, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_surface->pixels);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 64, 64, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_surface->pixels);
 
-			//Generate mipmaps
-			glGenerateMipmap(GL_TEXTURE_2D);
-			glBindTexture(GL_TEXTURE_2D, 0);
-		}
+		//Generate mipmaps
+		glGenerateMipmap(GL_TEXTURE_2D);
+		glBindTexture(GL_TEXTURE_2D, 0);
+		SDL_FreeSurface(m_surface);
+
+		m_textured = true;
 	}
+
 
 	~GameObject()
 	{
@@ -75,10 +81,11 @@ public:
 
 	const GLuint& get_VAO() const { return m_VAO; }
 	const GLuint& get_texture() const { return m_texture; }
+	const bool get_textured() const { return m_textured; }
 
-	glm::vec3 position() const { return m_position; }
-	glm::vec3 velocity() const { return m_velocity; }
-	glm::vec3 acceleration() const { return m_acceleration; }
+	glm::vec3 get_position() const { return m_position; }
+	glm::vec3 get_velocity() const { return m_velocity; }
+	glm::vec3 get_acceleration() const { return m_acceleration; }
 
 	glm::vec3	m_right{ 1.0f, 0.0f, 0.0f };
 	glm::vec3	m_forward{ 0.0f, 0.0f, 1.0f };
@@ -94,5 +101,7 @@ private:
 	float m_scale{ 1.0f };
 
 	GLuint m_VAO, m_VBO, m_EBO;
-	GLuint m_texture;
+	GLuint m_texture = NULL;
+
+	bool m_textured = false;
 };

@@ -20,7 +20,8 @@ SDL_Event window_event;
 Camera camera(glm::vec3(0, 0, -700.0f), WIDTH, HEIGHT);
 
 void update(float deltaTime);
-void render(Shader shader, SDL_Window* window, std::shared_ptr<GameObject> object, Renderer renderer);
+void render(Shader shaderTexture, Shader shaderColor, SDL_Window* window, std::shared_ptr<GameObject> object, Renderer renderer);
+
 
 int main(int argc, char* argv[])
 {
@@ -65,16 +66,17 @@ int main(int argc, char* argv[])
 
 	glEnable(GL_DEPTH_TEST);
 
-	Shader ourShader("./src/vertShader.glsl", "./src/fragShader.glsl");
+	Shader shaderTexture("./src/vertShader_Texture.glsl", "./src/fragShader_Texture.glsl");
+	Shader shaderColor("./src/vertShader_Color.glsl", "./src/fragShader_Color.glsl");
 	Renderer renderer;
 
 	std::vector<glm::vec3> v_vertices =
 	{
 		// Positions // Colors // Texture Coords
 		glm::vec3(0.5f, 0.5f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 0.f), // Top Right
-		glm::vec3(0.5f, -0.5f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.f), // Bottom Right
-		glm::vec3(-0.5f, -0.5f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, 0.0f, 0.f), // Bottom Left
-		glm::vec3(-0.5f, 0.5f, 0.0f), glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.f) // Top Left
+		glm::vec3(0.5f, -0.5f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.f), // Bottom Right
+		glm::vec3(-0.5f, -0.5f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.f), // Bottom Left
+		glm::vec3(-0.5f, 0.5f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.f) // Top Left
 	};
 
 	std::vector<int> v_indices =
@@ -83,7 +85,7 @@ int main(int argc, char* argv[])
 		1, 2, 3 // Second Triangle
 	};
 
-	std::shared_ptr<GameObject> square = std::make_shared<GameObject>(v_vertices, v_indices);
+	std::shared_ptr<GameObject> square = std::make_shared<GameObject>(v_vertices, v_indices, "./data/textures/grass.png");
 	
 	while (RUNNING)
 	{
@@ -95,7 +97,7 @@ int main(int argc, char* argv[])
 
 		update(deltaTime);
 
-		render(ourShader, window, square, renderer);
+		render(shaderTexture, shaderColor, window, square, renderer);
 	}
 
 	SDL_GL_DeleteContext(context);
@@ -141,31 +143,44 @@ void update(float deltaTime)
 	}
 }
 
-void render(Shader shader, SDL_Window* window, std::shared_ptr<GameObject> object, Renderer renderer)
+void render(Shader shaderTexture, Shader shaderColor, SDL_Window* window, std::shared_ptr<GameObject> object, Renderer renderer)
 {
 	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	shader.Use();
-
-	GLint viewLoc = glGetUniformLocation(shader.Program, "view");
-	GLint projectionLoc = glGetUniformLocation(shader.Program, "projection");
+	//// -- Textuered Rendered -- 
+	shaderTexture.Use();
+	GLint viewLoc = glGetUniformLocation(shaderTexture.Program, "view");
+	GLint projectionLoc = glGetUniformLocation(shaderTexture.Program, "projection");
 
 	glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(camera.getViewMat()));
 	glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(camera.getProjectionMat()));
 
-	int grid_width = 50;
-	int grid_height = 50;
+	int grid_width = 10;
+	int grid_height = 10;
 	for (int i = 0; i < grid_height; ++i)
 	{
 		for (int j = 0; j < grid_width; ++j)
 		{
 			glm::mat4 model = glm::mat4(1);
-			model = glm::translate(model, glm::vec3(70*j, 70*i, -100));
+			model = glm::translate(model, glm::vec3(70 * j, 70 * i, -100));
 			model = glm::scale(model, glm::vec3(70));
-			renderer.render(object, shader, model);
+			renderer.render(object, shaderTexture, model);
 		}
 	}
+
+	////-- Color Rendender
+	shaderColor.Use();
+	viewLoc = glGetUniformLocation(shaderColor.Program, "view");
+	projectionLoc = glGetUniformLocation(shaderColor.Program, "projection");
+
+	glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(camera.getViewMat()));
+	glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(camera.getProjectionMat()));
+
+	glm::mat4 model = glm::mat4(1);
+	model = glm::translate(model, glm::vec3(140, 140, -90));
+	model = glm::scale(model, glm::vec3(20));
+	renderer.render(object, shaderColor, model);
 
 	SDL_GL_SwapWindow(window);
 }
