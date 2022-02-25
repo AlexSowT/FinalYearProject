@@ -7,17 +7,20 @@
 #include<glm.hpp>
 #include<gtc/matrix_transform.hpp>
 #include<gtc/type_ptr.hpp>
+#include <memory>
+#include <vector>
 #include "Shader.h"
 #include "Camera.h"
+#include "Renderer.h"
 
 // TODO: Make ZOOM work with any aspect ratio
 const GLuint WIDTH = 800, HEIGHT = 800;
 bool RUNNING = true;
 SDL_Event window_event;
-Camera camera(glm::vec3(WIDTH / 2, HEIGHT / 2, -700.0f), WIDTH, HEIGHT);
+Camera camera(glm::vec3(0, 0, -700.0f), WIDTH, HEIGHT);
 
 void update(float deltaTime);
-void render(Shader shader, SDL_Window* window, GLuint VAO, GLuint texture);
+void render(Shader shader, SDL_Window* window, std::shared_ptr<GameObject> object, Renderer renderer);
 
 int main(int argc, char* argv[])
 {
@@ -63,6 +66,7 @@ int main(int argc, char* argv[])
 	glEnable(GL_DEPTH_TEST);
 
 	Shader ourShader("./src/vertShader.glsl", "./src/fragShader.glsl");
+	Renderer renderer;
 
 	// Set up vertex data (and buffer(s)) and attribute pointers
 	GLfloat vertices[] =
@@ -70,8 +74,8 @@ int main(int argc, char* argv[])
 		// Positions // Colors // Texture Coords
 		0.5f, 0.5f, 0.0f,		1.0f, 0.0f, 0.0f,	1.0f, 1.0f, // Top Right
 		0.5f, -0.5f, 0.0f,		0.0f, 1.0f, 0.0f,	1.0f, 0.0f, // Bottom Right
-		- 0.5f, -0.5f, 0.0f,	0.0f, 0.0f, 1.0f,	0.0f, 0.0f, // Bottom Left 
-		- 0.5f, 0.5f, 0.0f,		1.0f, 1.0f, 0.0f,	0.0f,	1.0f // Top Left
+		-0.5f, -0.5f, 0.0f,	0.0f, 0.0f, 1.0f,	0.0f, 0.0f, // Bottom Left 
+		-0.5f, 0.5f, 0.0f,		1.0f, 1.0f, 0.0f,	0.0f,	1.0f // Top Left
 	};
 
 	GLuint indices[] =
@@ -80,59 +84,7 @@ int main(int argc, char* argv[])
 		1, 2, 3 // Second Triangle
 	};
 
-	GLuint VBO, VAO, EBO;
-	glGenVertexArrays(1, &VAO);
-	glGenBuffers(1, &VBO);
-
-	glGenBuffers(1, &EBO);
-
-	glBindVertexArray(VAO);
-
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
-	// Position
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)0);
-	glEnableVertexAttribArray(0);
-
-	// Color - TODO: This can be cleaned up and removed. Keeping here for example
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*) (3* sizeof(GLfloat)));
-	glEnableVertexAttribArray(1);
-
-	// Texture
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(6 * sizeof(GLfloat)));
-	glEnableVertexAttribArray(2);
-
-	glBindVertexArray(0);
-
-	GLuint texture;
-	glGenTextures(1, &texture);
-	glBindTexture(GL_TEXTURE_2D, texture);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR
-	);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR
-	);
-
-	SDL_Surface* grass = NULL;
-	grass = IMG_Load("./data/textures/grass.png");
-
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 64, 64, 0, GL_RGBA, GL_UNSIGNED_BYTE, grass->pixels);
-
-	//Generate mipmaps
-	glGenerateMipmap(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D, 0);
-
-	if (grass == NULL)
-	{
-		std::cout << "Error loading grass texture" << std::endl;
-	}
+	std::shared_ptr<GameObject> square = std::make_shared<GameObject>(vertices, indices);
 	
 	float angle = 0;
 	//float zoom = 1;
@@ -146,19 +98,15 @@ int main(int argc, char* argv[])
 
 		update(deltaTime);
 
-		render(ourShader, window, VAO, texture);
+		render(ourShader, window, square, renderer);
 	}
-
-	glDeleteVertexArrays(1, &VAO);
-	glDeleteBuffers(1, &VBO);
-	glDeleteBuffers(1, &EBO);
 
 	SDL_GL_DeleteContext(context);
 	SDL_DestroyWindow(window);
 	SDL_Quit();
 
 	return 0;
-}
+} 
 
 void update(float deltaTime)
 {
@@ -196,48 +144,31 @@ void update(float deltaTime)
 	}
 }
 
-void render(Shader shader, SDL_Window* window, GLuint VAO, GLuint texture)
+void render(Shader shader, SDL_Window* window, std::shared_ptr<GameObject> object, Renderer renderer)
 {
-	GLint modelLoc = glGetUniformLocation(shader.Program, "model");
+	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	shader.Use();
+
 	GLint viewLoc = glGetUniformLocation(shader.Program, "view");
 	GLint projectionLoc = glGetUniformLocation(shader.Program, "projection");
 
 	glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(camera.getViewMat()));
 	glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(camera.getProjectionMat()));
 
-	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	glActiveTexture(GL_TEXTURE0);
-
-	glBindTexture(GL_TEXTURE_2D, texture);
-	glUniform1i(glGetUniformLocation(shader.Program, "ourTexture"
-	), 0);
-
-	shader.Use();
-
-	glBindVertexArray(VAO);
-
-	glm::mat4 model = glm::mat4(1);
-
-	model = glm::translate(model, glm::vec3(100, 0, -100));
-	model = glm::scale(model, glm::vec3(70));
-
-	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-
-	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-
-	model = glm::mat4(1);
-
-	model = glm::translate(model, glm::vec3(30, 0, -100));
-	model = glm::scale(model, glm::vec3(70));
-
-	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-
-	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-
-
-	glBindVertexArray(0);
+	int grid_width = 50;
+	int grid_height = 50;
+	for (int i = 0; i < grid_height; ++i)
+	{
+		for (int j = 0; j < grid_width; ++j)
+		{
+			glm::mat4 model = glm::mat4(1);
+			model = glm::translate(model, glm::vec3(70*j, 70*i, -100));
+			model = glm::scale(model, glm::vec3(70));
+			renderer.render(object, shader, model);
+		}
+	}
 
 	SDL_GL_SwapWindow(window);
 }
