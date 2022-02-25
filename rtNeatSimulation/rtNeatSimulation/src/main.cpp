@@ -68,26 +68,23 @@ int main(int argc, char* argv[])
 	Shader ourShader("./src/vertShader.glsl", "./src/fragShader.glsl");
 	Renderer renderer;
 
-	// Set up vertex data (and buffer(s)) and attribute pointers
-	GLfloat vertices[] =
+	std::vector<glm::vec3> v_vertices =
 	{
 		// Positions // Colors // Texture Coords
-		0.5f, 0.5f, 0.0f,		1.0f, 0.0f, 0.0f,	1.0f, 1.0f, // Top Right
-		0.5f, -0.5f, 0.0f,		0.0f, 1.0f, 0.0f,	1.0f, 0.0f, // Bottom Right
-		-0.5f, -0.5f, 0.0f,	0.0f, 0.0f, 1.0f,	0.0f, 0.0f, // Bottom Left 
-		-0.5f, 0.5f, 0.0f,		1.0f, 1.0f, 0.0f,	0.0f,	1.0f // Top Left
+		glm::vec3(0.5f, 0.5f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 0.f), // Top Right
+		glm::vec3(0.5f, -0.5f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.f), // Bottom Right
+		glm::vec3(-0.5f, -0.5f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, 0.0f, 0.f), // Bottom Left
+		glm::vec3(-0.5f, 0.5f, 0.0f), glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.f) // Top Left
 	};
 
-	GLuint indices[] =
-	{ // Note that we start from 0!
+	std::vector<int> v_indices =
+	{
 		0, 1, 3, // First Triangle
 		1, 2, 3 // Second Triangle
 	};
 
-	std::shared_ptr<GameObject> square = std::make_shared<GameObject>(vertices, indices);
+	std::shared_ptr<GameObject> square = std::make_shared<GameObject>(v_vertices, v_indices);
 	
-	float angle = 0;
-	//float zoom = 1;
 	while (RUNNING)
 	{
 		// Reference: https://gamedev.stackexchange.com/questions/110825/how-to-calculate-delta-time-with-sdl 

@@ -3,27 +3,13 @@
 #include <SDL_image.h>
 #include <glm.hpp>
 #include <gl/glew.h>
+#include <vector>
 
 class GameObject
 {
 public:
-	GameObject(const GLfloat p_vertices[], const GLuint p_indices[])
+	GameObject(std::vector<glm::vec3> p_vertices, std::vector<int> p_indices)
 	{
-		GLfloat t_vertices[] =
-		{
-			// Positions // Colors // Texture Coords
-			0.5f, 0.5f, 0.0f,		1.0f, 0.0f, 0.0f,	1.0f, 1.0f, // Top Right
-			0.5f, -0.5f, 0.0f,		0.0f, 1.0f, 0.0f,	1.0f, 0.0f, // Bottom Right
-			-0.5f, -0.5f, 0.0f,	0.0f, 0.0f, 1.0f,	0.0f, 0.0f, // Bottom Left 
-			-0.5f, 0.5f, 0.0f,		1.0f, 1.0f, 0.0f,	0.0f,	1.0f // Top Left
-		};
-
-		GLuint t_indices[] =
-		{ // Note that we start from 0!
-			0, 1, 3, // First Triangle
-			1, 2, 3 // Second Triangle
-		};
-
 		glGenVertexArrays(1, &m_VAO);
 		glGenBuffers(1, &m_VBO);
 		glGenBuffers(1, &m_EBO);
@@ -31,21 +17,21 @@ public:
 		glBindVertexArray(m_VAO);
 
 		glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(t_vertices), t_vertices, GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, p_vertices.size()*sizeof(glm::vec3), &p_vertices[0], GL_STATIC_DRAW);
 
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(t_indices), t_indices, GL_STATIC_DRAW);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, p_indices.size()* sizeof(int), &p_indices[0], GL_STATIC_DRAW);
 
 		// Position
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)0);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(GLfloat), (GLvoid*)0);
 		glEnableVertexAttribArray(0);
 
 		// Color - TODO: This can be cleaned up and removed. Keeping here for example
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
 		glEnableVertexAttribArray(1);
 
 		// Texture
-		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(6 * sizeof(GLfloat)));
+		glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(GLfloat), (GLvoid*)(6 * sizeof(GLfloat)));
 		glEnableVertexAttribArray(2);
 
 		glBindVertexArray(0);
