@@ -54,10 +54,10 @@ public:
 		SDL_Surface* m_surface;
 		m_surface = NULL;
 		m_surface = IMG_Load(texture_path.c_str());
-
+		
 		if (m_surface == NULL)
 		{
-			throw std::invalid_argument("Texture filepath could not be loaded");
+			throw std::invalid_argument("GameObject::GameObject. Error: Texture filepath could not be loaded");
 		}
 
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 64, 64, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_surface->pixels);

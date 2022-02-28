@@ -4,6 +4,7 @@
 #include<SDL_image.h>
 #include<GL/glew.h>
 #include<SDL_opengl.h>
+#include<SDL_ttf.h>
 #include<glm.hpp>
 #include<gtc/matrix_transform.hpp>
 #include<gtc/type_ptr.hpp>
@@ -34,10 +35,17 @@ int main(int argc, char* argv[])
 	{
 		std::cout << "SDL Init has filed. SDL_Error: " << SDL_GetError() << std::endl;
 	}
+
 	// Init PNG Loading
 	if (!IMG_Init(IMG_INIT_PNG))
 	{
 		std::cout << "Image has failed to init. IMG_PNG_Error: " << SDL_GetError() << std::endl;
+	}
+
+	//Initialize SDL_ttf
+	if (TTF_Init() == -1)
+	{
+		printf("SDL_ttf could not initialize! SDL_ttf Error: %s\n", TTF_GetError());
 	}
 
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
@@ -168,6 +176,8 @@ void render(Shader shaderTexture, Shader shaderColor, SDL_Window* window, std::s
 			renderer.render(object, shaderTexture, model);
 		}
 	}
+
+	renderer.render_text(0, 0, { 1, 1, 1 }, "TEST!!!!", shaderTexture);
 
 	////-- Color Rendender
 	shaderColor.Use();
