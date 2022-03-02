@@ -11,7 +11,7 @@
 #include <string>
 #include <stdexcept>
 #include <map>
-#include "Shader.h"
+#include "ShaderLibrary.h"
 #include "GameObject.h"
 
 struct character
@@ -29,8 +29,8 @@ public:
 	Renderer();
 	~Renderer();
 
-	void render(const std::shared_ptr<GameObject> object, Shader shader, glm::mat4 transformation);
-	void render_text(Shader s, std::string text, float x, float y, float scale, glm::vec4 colour);
+	void render(ShaderLibrary shaderLibrary, ShaderLibrary::SHADER_TYPE type, const std::shared_ptr<GameObject> object, glm::mat4 transformation);
+	void render_text(ShaderLibrary shaderLibrary, ShaderLibrary::SHADER_TYPE type, std::string text, float x, float y, float scale, glm::vec4 colour);
 private:
 	std::map<char, character> m_characters;
 	FT_Library m_ft;

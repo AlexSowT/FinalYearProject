@@ -10,7 +10,7 @@
 #include<gtc/type_ptr.hpp>
 #include <memory>
 #include <vector>
-#include "Shader.h"
+#include "ShaderLibrary.h"
 #include "Camera.h"
 #include "Renderer.h"
 
@@ -21,7 +21,7 @@ SDL_Event window_event;
 Camera camera(glm::vec3(0, 0, -700.0f), WIDTH, HEIGHT);
 
 void update(float deltaTime);
-void render(Shader shaderTexture, Shader shaderColor, Shader shaderText, SDL_Window* window, std::shared_ptr<GameObject> object, Renderer renderer);
+void render(ShaderLibrary shaderLibrary, SDL_Window* window, std::shared_ptr<GameObject> object, Renderer renderer);
 
 
 int main(int argc, char* argv[])
@@ -74,9 +74,11 @@ int main(int argc, char* argv[])
 
 	glEnable(GL_DEPTH_TEST);
 
-	Shader shaderTexture("./src/vertShader_Texture.glsl", "./src/fragShader_Texture.glsl");
-	Shader shaderColor("./src/vertShader_Color.glsl", "./src/fragShader_Color.glsl");
-	Shader shaderText("./src/vertShader_Text.glsl", "./src/fragShader_Text.glsl");
+	ShaderLibrary shaderLibrary;
+	shaderLibrary.AddShader("./src/vertShader_Texture.glsl", "./src/fragShader_Texture.glsl", ShaderLibrary::SHADER_TYPE::TEXTURE);
+	shaderLibrary.AddShader("./src/vertShader_Color.glsl", "./src/fragShader_Color.glsl", ShaderLibrary::SHADER_TYPE::COLOR);
+	shaderLibrary.AddShader("./src/vertShader_Text.glsl", "./src/fragShader_Text.glsl", ShaderLibrary::SHADER_TYPE::TEXT);
+
 	Renderer renderer;
 
 	std::vector<glm::vec3> v_vertices =
@@ -106,7 +108,7 @@ int main(int argc, char* argv[])
 
 		update(deltaTime);
 
-		render(shaderTexture, shaderColor, shaderText, window, square, renderer);
+		render(shaderLibrary, window, square, renderer);
 	}
 
 	SDL_GL_DeleteContext(context);
@@ -152,15 +154,15 @@ void update(float deltaTime)
 	}
 }
 
-void render(Shader shaderTexture, Shader shaderColor, Shader shaderText, SDL_Window* window, std::shared_ptr<GameObject> object, Renderer renderer)
+void render(ShaderLibrary shaderLibrary, SDL_Window* window, std::shared_ptr<GameObject> object, Renderer renderer)
 {
 	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	//// -- Textuered Rendered -- 
-	shaderTexture.Use();
-	GLint viewLoc = glGetUniformLocation(shaderTexture.Program, "view");
-	GLint projectionLoc = glGetUniformLocation(shaderTexture.Program, "projection");
+	shaderLibrary.Use(ShaderLibrary::SHADER_TYPE::TEXTURE);
+	GLint viewLoc = glGetUniformLocation(shaderLibrary.GetProgramID(ShaderLibrary::SHADER_TYPE::TEXTURE), "view");
+	GLint projectionLoc = glGetUniformLocation(shaderLibrary.GetProgramID(ShaderLibrary::SHADER_TYPE::TEXTURE), "projection");
 
 	glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(camera.getViewMat()));
 	glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(camera.getProjectionMat()));
@@ -174,21 +176,21 @@ void render(Shader shaderTexture, Shader shaderColor, Shader shaderText, SDL_Win
 			glm::mat4 model = glm::mat4(1);
 			model = glm::translate(model, glm::vec3(70 * j, 70 * i, -100));
 			model = glm::scale(model, glm::vec3(70));
-			renderer.render(object, shaderTexture, model);
+			renderer.render(shaderLibrary, ShaderLibrary::SHADER_TYPE::TEXTURE, object, model);
 		}
 	}
 
-	shaderText.Use();
+	shaderLibrary.Use(ShaderLibrary::SHADER_TYPE::TEXT);
 	auto text_ortho = glm::ortho(0.0f, (GLfloat)WIDTH, 0.0f, (GLfloat)HEIGHT, -1000.f, 1000.0f);
-	projectionLoc = glGetUniformLocation(shaderText.Program, "projection");
+	projectionLoc = glGetUniformLocation(shaderLibrary.GetProgramID(ShaderLibrary::SHADER_TYPE::TEXT), "projection");
 	glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(text_ortho));
 
-	renderer.render_text(shaderText, "TEST!!!", 0.f, HEIGHT-50, 1.f, glm::vec4(255, 0, 0, 1));
+	renderer.render_text(shaderLibrary, ShaderLibrary::SHADER_TYPE::TEXT, "TEST!!!", 0.f, HEIGHT - 50, 1.f, glm::vec4(255, 0, 0, 1));
 
 	////-- Color Rendender
-	shaderColor.Use();
-	viewLoc = glGetUniformLocation(shaderColor.Program, "view");
-	projectionLoc = glGetUniformLocation(shaderColor.Program, "projection");
+	shaderLibrary.Use(ShaderLibrary::SHADER_TYPE::COLOR);
+	viewLoc = glGetUniformLocation(shaderLibrary.GetProgramID(ShaderLibrary::SHADER_TYPE::COLOR), "view");
+	projectionLoc = glGetUniformLocation(shaderLibrary.GetProgramID(ShaderLibrary::SHADER_TYPE::COLOR), "projection");
 
 	glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(camera.getViewMat()));
 	glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(camera.getProjectionMat()));
@@ -196,7 +198,7 @@ void render(Shader shaderTexture, Shader shaderColor, Shader shaderText, SDL_Win
 	glm::mat4 model = glm::mat4(1);
 	model = glm::translate(model, glm::vec3(140, 140, -90));
 	model = glm::scale(model, glm::vec3(20));
-	renderer.render(object, shaderColor, model);
+	renderer.render(shaderLibrary, ShaderLibrary::SHADER_TYPE::COLOR, object, model);
 
 
 	SDL_GL_SwapWindow(window);

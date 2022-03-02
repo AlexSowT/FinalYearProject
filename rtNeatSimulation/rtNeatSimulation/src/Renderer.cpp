@@ -86,22 +86,22 @@ Renderer::~Renderer()
 {
 }
 
-void Renderer::render(const std::shared_ptr<GameObject> object, Shader shader, glm::mat4 transformation)
+void Renderer::render(ShaderLibrary shaderLibrary, ShaderLibrary::SHADER_TYPE type, const std::shared_ptr<GameObject> object, glm::mat4 transformation)
 {
-	shader.Use();
+	shaderLibrary.Use(type);
 
 	if (object->get_textured())
 	{
 		glActiveTexture(GL_TEXTURE0);
 
 		glBindTexture(GL_TEXTURE_2D, object->get_texture());
-		glUniform1i(glGetUniformLocation(shader.Program, "ourTexture"
+		glUniform1i(glGetUniformLocation(shaderLibrary.GetProgramID(type), "ourTexture"
 		), 0);
 	}
 
 	glBindVertexArray(object->get_VAO());
 
-	GLint modelLoc = glGetUniformLocation(shader.Program, "model");
+	GLint modelLoc = glGetUniformLocation(shaderLibrary.GetProgramID(type), "model");
 	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(transformation));
 
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
@@ -109,10 +109,10 @@ void Renderer::render(const std::shared_ptr<GameObject> object, Shader shader, g
 	glBindVertexArray(0);
 }
 
-void Renderer::render_text(Shader s, std::string text, float x, float y, float scale, glm::vec4 colour)
+void Renderer::render_text(ShaderLibrary shaderLibrary, ShaderLibrary::SHADER_TYPE type, std::string text, float x, float y, float scale, glm::vec4 colour)
 {
-	s.Use();
-	const int32_t uniformLocation = glGetUniformLocation(s.Program, "textColor");
+	shaderLibrary.Use(type);
+	const int32_t uniformLocation = glGetUniformLocation(shaderLibrary.GetProgramID(type), "textColor");
 	glUniform4f(uniformLocation, colour.x, colour.y, colour.z, colour.w);
 
 	glActiveTexture(GL_TEXTURE0);
