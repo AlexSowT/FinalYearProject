@@ -13,24 +13,16 @@
 #include "ShaderLibrary.h"
 #include "Camera.h"
 #include "Renderer.h"
+#include "Layer.h"
+#include "NEATLayer.h"
 
 // TODO: Make ZOOM work with any aspect ratio
 const GLuint WIDTH = 800, HEIGHT = 800;
 bool RUNNING = true;
 SDL_Event window_event;
-Camera camera(glm::vec3(0, 0, -700.0f), WIDTH, HEIGHT);
-
-void update(float deltaTime);
-void render(ShaderLibrary shaderLibrary, SDL_Window* window, std::shared_ptr<GameObject> object, Renderer renderer);
-
 
 int main(int argc, char* argv[])
 {
-	// Reference: https://gamedev.stackexchange.com/questions/110825/how-to-calculate-delta-time-with-sdl 
-	Uint64 NOW = SDL_GetPerformanceCounter();
-	Uint64 LAST = 0;
-	double deltaTime = 0;
-
 	if (SDL_Init(SDL_INIT_VIDEO) > 0)
 	{
 		std::cout << "SDL Init has filed. SDL_Error: " << SDL_GetError() << std::endl;
@@ -56,6 +48,7 @@ int main(int argc, char* argv[])
 
 	SDL_Window* window = SDL_CreateWindow("OpenGL", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WIDTH, HEIGHT, SDL_WINDOW_OPENGL);
 	SDL_GLContext context = SDL_GL_CreateContext(window);
+
 	glewExperimental = GL_TRUE;
 
 	GLenum glew_init_error = glewInit();
@@ -80,24 +73,24 @@ int main(int argc, char* argv[])
 	shaderLibrary.AddShader("./src/vertShader_Text.glsl", "./src/fragShader_Text.glsl", ShaderLibrary::SHADER_TYPE::TEXT);
 
 	Renderer renderer;
-
-	std::vector<glm::vec3> v_vertices =
-	{
-		// Positions // Colors // Texture Coords
-		glm::vec3(0.5f, 0.5f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 0.f), // Top Right
-		glm::vec3(0.5f, -0.5f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.f), // Bottom Right
-		glm::vec3(-0.5f, -0.5f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.f), // Bottom Left
-		glm::vec3(-0.5f, 0.5f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.f) // Top Left
-	};
-
-	std::vector<int> v_indices =
-	{
-		0, 1, 3, // First Triangle
-		1, 2, 3 // Second Triangle
-	};
-
-	std::shared_ptr<GameObject> square = std::make_shared<GameObject>(v_vertices, v_indices, "./data/textures/grass.png");
 	
+	std::shared_ptr<Camera> camera = std::make_shared<Camera>(glm::vec3(0, 0, -700.0f), WIDTH, HEIGHT);
+
+	// Add all layers then init
+	std::vector<std::shared_ptr<Layer>> layers;
+	layers.push_back(std::make_shared<NEATLayer>(camera));
+
+	for (auto layer : layers)
+	{
+		layer->Init();
+	}
+
+	// Reference: https://gamedev.stackexchange.com/questions/110825/how-to-calculate-delta-time-with-sdl 
+	Uint64 NOW = SDL_GetPerformanceCounter();
+	Uint64 LAST = 0;
+	double deltaTime = 0;
+
+	// MAIN GAME LOOP
 	while (RUNNING)
 	{
 		// Reference: https://gamedev.stackexchange.com/questions/110825/how-to-calculate-delta-time-with-sdl 
@@ -106,9 +99,11 @@ int main(int argc, char* argv[])
 
 		deltaTime = (double)((NOW - LAST) * 1000 / (double)SDL_GetPerformanceFrequency());
 
-		update(deltaTime);
-
-		render(shaderLibrary, window, square, renderer);
+		for (auto layer : layers)
+		{
+			layer->Update(deltaTime, RUNNING);
+			layer->Render(shaderLibrary, renderer, window);
+		}
 	}
 
 	SDL_GL_DeleteContext(context);
@@ -116,91 +111,4 @@ int main(int argc, char* argv[])
 	SDL_Quit();
 
 	return 0;
-} 
-
-void update(float deltaTime)
-{
-	if (SDL_PollEvent(&window_event))
-	{
-		if (window_event.type == SDL_QUIT)
-		{
-			RUNNING = false;
-		} else if (window_event.type == SDL_KEYDOWN)
-		{
-			switch (window_event.key.keysym.sym)
-			{
-			case SDLK_LEFT:
-				camera.ProcessKeyboard(LEFT, deltaTime);
-				break;
-			case SDLK_RIGHT:
-				camera.ProcessKeyboard(RIGHT, deltaTime);
-				break;
-
-			case SDLK_UP:
-				camera.ProcessKeyboard(FORWARD, deltaTime);
-				break;
-
-			case SDLK_DOWN:
-				camera.ProcessKeyboard(BACKWARD, deltaTime);
-				break;
-
-			default:
-				break;
-			}
-		} else if (window_event.type == SDL_MOUSEWHEEL)
-		{
-			camera.ProcessMouseScroll(window_event.wheel.y);
-		}
-	}
 }
-
-void render(ShaderLibrary shaderLibrary, SDL_Window* window, std::shared_ptr<GameObject> object, Renderer renderer)
-{
-	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	//// -- Textuered Rendered -- 
-	shaderLibrary.Use(ShaderLibrary::SHADER_TYPE::TEXTURE);
-	GLint viewLoc = glGetUniformLocation(shaderLibrary.GetProgramID(ShaderLibrary::SHADER_TYPE::TEXTURE), "view");
-	GLint projectionLoc = glGetUniformLocation(shaderLibrary.GetProgramID(ShaderLibrary::SHADER_TYPE::TEXTURE), "projection");
-
-	glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(camera.getViewMat()));
-	glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(camera.getProjectionMat()));
-
-	int grid_width = 10;
-	int grid_height = 10;
-	for (int i = 0; i < grid_height; ++i)
-	{
-		for (int j = 0; j < grid_width; ++j)
-		{
-			glm::mat4 model = glm::mat4(1);
-			model = glm::translate(model, glm::vec3(70 * j, 70 * i, -100));
-			model = glm::scale(model, glm::vec3(70));
-			renderer.render(shaderLibrary, ShaderLibrary::SHADER_TYPE::TEXTURE, object, model);
-		}
-	}
-
-	shaderLibrary.Use(ShaderLibrary::SHADER_TYPE::TEXT);
-	auto text_ortho = glm::ortho(0.0f, (GLfloat)WIDTH, 0.0f, (GLfloat)HEIGHT, -1000.f, 1000.0f);
-	projectionLoc = glGetUniformLocation(shaderLibrary.GetProgramID(ShaderLibrary::SHADER_TYPE::TEXT), "projection");
-	glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(text_ortho));
-
-	renderer.render_text(shaderLibrary, ShaderLibrary::SHADER_TYPE::TEXT, "TEST!!!", 0.f, HEIGHT - 50, 1.f, glm::vec4(255, 0, 0, 1));
-
-	////-- Color Rendender
-	shaderLibrary.Use(ShaderLibrary::SHADER_TYPE::COLOR);
-	viewLoc = glGetUniformLocation(shaderLibrary.GetProgramID(ShaderLibrary::SHADER_TYPE::COLOR), "view");
-	projectionLoc = glGetUniformLocation(shaderLibrary.GetProgramID(ShaderLibrary::SHADER_TYPE::COLOR), "projection");
-
-	glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(camera.getViewMat()));
-	glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(camera.getProjectionMat()));
-
-	glm::mat4 model = glm::mat4(1);
-	model = glm::translate(model, glm::vec3(140, 140, -90));
-	model = glm::scale(model, glm::vec3(20));
-	renderer.render(shaderLibrary, ShaderLibrary::SHADER_TYPE::COLOR, object, model);
-
-
-	SDL_GL_SwapWindow(window);
-}
-

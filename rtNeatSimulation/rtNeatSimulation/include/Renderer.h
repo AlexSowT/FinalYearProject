@@ -35,6 +35,4 @@ private:
 	std::map<char, character> m_characters;
 	FT_Library m_ft;
 	uint32_t m_VAO, m_VBO;
-
-
 };
