@@ -55,5 +55,11 @@
     <None Include="src\vertShader_Texture.glsl">
       <Filter>Source Files\shaders</Filter>
     </None>
+    <None Include="src\fragShader_Text.glsl">
+      <Filter>Source Files\shaders</Filter>
+    </None>
+    <None Include="src\vertShader_Text.glsl">
+      <Filter>Source Files\shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

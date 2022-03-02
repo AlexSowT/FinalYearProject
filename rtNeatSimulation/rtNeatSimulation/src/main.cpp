@@ -21,7 +21,7 @@ SDL_Event window_event;
 Camera camera(glm::vec3(0, 0, -700.0f), WIDTH, HEIGHT);
 
 void update(float deltaTime);
-void render(Shader shaderTexture, Shader shaderColor, SDL_Window* window, std::shared_ptr<GameObject> object, Renderer renderer);
+void render(Shader shaderTexture, Shader shaderColor, Shader shaderText, SDL_Window* window, std::shared_ptr<GameObject> object, Renderer renderer);
 
 
 int main(int argc, char* argv[])
@@ -76,6 +76,7 @@ int main(int argc, char* argv[])
 
 	Shader shaderTexture("./src/vertShader_Texture.glsl", "./src/fragShader_Texture.glsl");
 	Shader shaderColor("./src/vertShader_Color.glsl", "./src/fragShader_Color.glsl");
+	Shader shaderText("./src/vertShader_Text.glsl", "./src/fragShader_Text.glsl");
 	Renderer renderer;
 
 	std::vector<glm::vec3> v_vertices =
@@ -105,7 +106,7 @@ int main(int argc, char* argv[])
 
 		update(deltaTime);
 
-		render(shaderTexture, shaderColor, window, square, renderer);
+		render(shaderTexture, shaderColor, shaderText, window, square, renderer);
 	}
 
 	SDL_GL_DeleteContext(context);
@@ -151,7 +152,7 @@ void update(float deltaTime)
 	}
 }
 
-void render(Shader shaderTexture, Shader shaderColor, SDL_Window* window, std::shared_ptr<GameObject> object, Renderer renderer)
+void render(Shader shaderTexture, Shader shaderColor, Shader shaderText, SDL_Window* window, std::shared_ptr<GameObject> object, Renderer renderer)
 {
 	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -177,7 +178,12 @@ void render(Shader shaderTexture, Shader shaderColor, SDL_Window* window, std::s
 		}
 	}
 
-	renderer.render_text(0, 0, { 1, 1, 1 }, "TEST!!!!", shaderTexture);
+	shaderText.Use();
+	auto text_ortho = glm::ortho(0.0f, (GLfloat)WIDTH, 0.0f, (GLfloat)HEIGHT, -1000.f, 1000.0f);
+	projectionLoc = glGetUniformLocation(shaderText.Program, "projection");
+	glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(text_ortho));
+
+	renderer.render_text(shaderText, "TEST!!!", 0.f, HEIGHT-50, 1.f, glm::vec4(255, 0, 0, 1));
 
 	////-- Color Rendender
 	shaderColor.Use();
@@ -191,6 +197,7 @@ void render(Shader shaderTexture, Shader shaderColor, SDL_Window* window, std::s
 	model = glm::translate(model, glm::vec3(140, 140, -90));
 	model = glm::scale(model, glm::vec3(20));
 	renderer.render(object, shaderColor, model);
+
 
 	SDL_GL_SwapWindow(window);
 }

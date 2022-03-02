@@ -80,8 +80,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>C:\Development\University\Final Year Project\FinalYearProject\rtNeatSimulation\rtNeatSimulation\libs\SDL2_ttf-devel-2.0.15-VC\SDL2_ttf-2.0.15\include;C:\Development\University\Final Year Project\FinalYearProject\rtNeatSimulation\rtNeatSimulation\libs\glm-0.9.9.8\glm\glm;C:\Development\University\Final Year Project\FinalYearProject\rtNeatSimulation\rtNeatSimulation\libs\SDL2_image-2.0.5\include;C:\Development\University\Final Year Project\FinalYearProject\rtNeatSimulation\rtNeatSimulation\include;C:\Development\University\Final Year Project\FinalYearProject\rtNeatSimulation\rtNeatSimulation\libs\glew-2.1.0\include;C:\Development\University\Final Year Project\FinalYearProject\rtNeatSimulation\rtNeatSimulation\libs\SDL2-2.0.20\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Development\University\Final Year Project\FinalYearProject\rtNeatSimulation\rtNeatSimulation\libs\SDL2_ttf-devel-2.0.15-VC\SDL2_ttf-2.0.15\lib\x64;C:\Development\University\Final Year Project\FinalYearProject\rtNeatSimulation\rtNeatSimulation\libs\SDL2_image-2.0.5\lib\x64;C:\Development\University\Final Year Project\FinalYearProject\rtNeatSimulation\rtNeatSimulation\libs\glew-2.1.0\lib\Release\x64;C:\Development\University\Final Year Project\FinalYearProject\rtNeatSimulation\rtNeatSimulation\libs\SDL2-2.0.20\lib\x64;$(LibraryPath)</LibraryPath>
+    <IncludePath>C:\Development\University\Final Year Project\FinalYearProject\rtNeatSimulation\rtNeatSimulation\libs\freetype\include;C:\Development\University\Final Year Project\FinalYearProject\rtNeatSimulation\rtNeatSimulation\libs\SDL2_ttf-devel-2.0.15-VC\SDL2_ttf-2.0.15\include;C:\Development\University\Final Year Project\FinalYearProject\rtNeatSimulation\rtNeatSimulation\libs\glm-0.9.9.8\glm\glm;C:\Development\University\Final Year Project\FinalYearProject\rtNeatSimulation\rtNeatSimulation\libs\SDL2_image-2.0.5\include;C:\Development\University\Final Year Project\FinalYearProject\rtNeatSimulation\rtNeatSimulation\include;C:\Development\University\Final Year Project\FinalYearProject\rtNeatSimulation\rtNeatSimulation\libs\glew-2.1.0\include;C:\Development\University\Final Year Project\FinalYearProject\rtNeatSimulation\rtNeatSimulation\libs\SDL2-2.0.20\include;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Development\University\Final Year Project\FinalYearProject\rtNeatSimulation\rtNeatSimulation\libs\freetype\lib\Debug;C:\Development\University\Final Year Project\FinalYearProject\rtNeatSimulation\rtNeatSimulation\libs\SDL2_ttf-devel-2.0.15-VC\SDL2_ttf-2.0.15\lib\x64;C:\Development\University\Final Year Project\FinalYearProject\rtNeatSimulation\rtNeatSimulation\libs\SDL2_image-2.0.5\lib\x64;C:\Development\University\Final Year Project\FinalYearProject\rtNeatSimulation\rtNeatSimulation\libs\glew-2.1.0\lib\Release\x64;C:\Development\University\Final Year Project\FinalYearProject\rtNeatSimulation\rtNeatSimulation\libs\SDL2-2.0.20\lib\x64;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
@@ -125,7 +125,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>SDL2.lib;SDL2main.lib;glew32s.lib;opengl32.lib;SDL2_image.lib;SDL2_ttf.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>SDL2.lib;SDL2main.lib;glew32s.lib;opengl32.lib;SDL2_image.lib;SDL2_ttf.lib;freetype.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -157,8 +157,10 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="src\fragShader_Color.glsl" />
+    <None Include="src\fragShader_Text.glsl" />
     <None Include="src\fragShader_Texture.glsl" />
     <None Include="src\vertShader_Color.glsl" />
+    <None Include="src\vertShader_Text.glsl" />
     <None Include="src\vertShader_Texture.glsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
