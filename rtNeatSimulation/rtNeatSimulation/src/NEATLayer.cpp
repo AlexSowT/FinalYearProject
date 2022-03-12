@@ -31,8 +31,7 @@ void NEATLayer::Init()
 	};
 
 	m_grassPlane = std::make_shared<GameObject>(planeVertices, planeIndices, "./data/textures/grass.png");
-	m_SpeciesMember = std::make_shared<SpeciesMember>();
-	m_SpeciesMember->SetPosition(glm::vec3(140, 140, -90));
+	m_SpeciesMember = std::make_shared<GameObject>(memberVertices, memberIndices);
 }
 
 void NEATLayer::Update(float deltaTime, bool& running){
@@ -60,26 +59,6 @@ void NEATLayer::Update(float deltaTime, bool& running){
 			case SDLK_DOWN:
 				m_camera->ProcessKeyboard(BACKWARD, deltaTime);
 				break;
-			case SDLK_w:
-				m_SpeciesMember->SetSpeed(0.2f);
-				break;
-			case SDLK_a:
-				m_SpeciesMember->SetRotation(m_SpeciesMember->GetRotation() + 0.1);
-				break;
-			case SDLK_d:
-				m_SpeciesMember->SetRotation(m_SpeciesMember->GetRotation() - 0.1);
-				break;
-
-			default:
-				break;
-			}
-		} else if (m_windowEvent.type == SDL_KEYUP)
-		{
-			switch (m_windowEvent.key.keysym.sym)
-			{
-			case SDLK_w:
-				m_SpeciesMember->SetSpeed(0.f);
-				break;
 
 			default:
 				break;
@@ -89,8 +68,6 @@ void NEATLayer::Update(float deltaTime, bool& running){
 			m_camera->ProcessMouseScroll(m_windowEvent.wheel.y);
 		}
 	}
-
-	m_SpeciesMember->Update(deltaTime);
 }
 
 void NEATLayer::Render(ShaderLibrary& shaderLibrary, Renderer& renderer, SDL_Window* window){
@@ -124,11 +101,7 @@ void NEATLayer::Render(ShaderLibrary& shaderLibrary, Renderer& renderer, SDL_Win
 	projectionLoc = glGetUniformLocation(shaderLibrary.GetProgramID(ShaderLibrary::SHADER_TYPE::TEXT), "projection");
 	glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(text_ortho));
 
-	std::string xPos = std::to_string(m_SpeciesMember->GetForward().x);
-	std::string yPos = std::to_string(m_SpeciesMember->GetForward().y);
-
-	renderer.render_text(shaderLibrary, ShaderLibrary::SHADER_TYPE::TEXT, xPos, 0.f, HEIGHT - 50, 1.f, glm::vec4(255, 0, 0, 1));
-	renderer.render_text(shaderLibrary, ShaderLibrary::SHADER_TYPE::TEXT, yPos, 0.f, HEIGHT - 100, 1.f, glm::vec4(255, 0, 0, 1));
+	renderer.render_text(shaderLibrary, ShaderLibrary::SHADER_TYPE::TEXT, "TEST!!!", 0.f, HEIGHT - 50, 1.f, glm::vec4(255, 0, 0, 1));
 
 	////-- Color Rendender
 	shaderLibrary.Use(ShaderLibrary::SHADER_TYPE::COLOR);
@@ -139,11 +112,9 @@ void NEATLayer::Render(ShaderLibrary& shaderLibrary, Renderer& renderer, SDL_Win
 	glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(m_camera->getProjectionMat()));
 
 	glm::mat4 model = glm::mat4(1);
-	model = glm::translate(model, m_SpeciesMember->GetPosition());
-	model = glm::rotate(model, m_SpeciesMember->GetRotation() - glm::pi<float>()/2, glm::vec3(0, 0, 1)); // Take away pi/2 from intial value to correct for rotation 0 pointing in the positive Y
+	model = glm::translate(model, glm::vec3(140, 140, -90));
 	model = glm::scale(model, glm::vec3(20));
 	renderer.render(shaderLibrary, ShaderLibrary::SHADER_TYPE::COLOR, m_SpeciesMember, model);
 
 	SDL_GL_SwapWindow(window);
 }
- 

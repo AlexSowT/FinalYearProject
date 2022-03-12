@@ -90,16 +90,16 @@ void Renderer::render(ShaderLibrary shaderLibrary, ShaderLibrary::SHADER_TYPE ty
 {
 	shaderLibrary.Use(type);
 
-	if (object->GetTextured())
+	if (object->get_textured())
 	{
 		glActiveTexture(GL_TEXTURE0);
 
-		glBindTexture(GL_TEXTURE_2D, object->GetTexture());
+		glBindTexture(GL_TEXTURE_2D, object->get_texture());
 		glUniform1i(glGetUniformLocation(shaderLibrary.GetProgramID(type), "ourTexture"
 		), 0);
 	}
 
-	glBindVertexArray(object->GetVAO());
+	glBindVertexArray(object->get_VAO());
 
 	GLint modelLoc = glGetUniformLocation(shaderLibrary.GetProgramID(type), "model");
 	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(transformation));
