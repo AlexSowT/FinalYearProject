@@ -99,6 +99,8 @@ int main(int argc, char* argv[])
 
 		deltaTime = (double)((NOW - LAST) * 1000 / (double)SDL_GetPerformanceFrequency());
 
+		// Update to fixed time update for more control
+
 		for (auto layer : layers)
 		{
 			layer->Update(deltaTime, RUNNING);

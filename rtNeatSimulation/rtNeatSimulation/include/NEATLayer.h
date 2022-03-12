@@ -1,5 +1,6 @@
 #pragma once
 #include "Layer.h"
+#include "SpeciesMember.h"
 
 struct NEATLayer : public Layer
 {
@@ -15,7 +16,7 @@ private:
 	std::shared_ptr<Camera> m_camera;
 
 	std::shared_ptr<GameObject> m_grassPlane;
-	std::shared_ptr<GameObject> m_SpeciesMember;
+	std::shared_ptr<SpeciesMember> m_SpeciesMember;
 
 	const float WIDTH = 800;
 	const float HEIGHT = 800;

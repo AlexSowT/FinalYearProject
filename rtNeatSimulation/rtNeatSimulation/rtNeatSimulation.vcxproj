@@ -150,6 +150,7 @@
     <ClCompile Include="src\NEATLayer.cpp" />
     <ClCompile Include="src\Renderer.cpp" />
     <ClCompile Include="src\ShaderLibrary.cpp" />
+    <ClCompile Include="src\SpeciesMember.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\Camera.h" />
@@ -158,6 +159,7 @@
     <ClInclude Include="include\NEATLayer.h" />
     <ClInclude Include="include\Renderer.h" />
     <ClInclude Include="include\ShaderLibrary.h" />
+    <ClInclude Include="include\SpeciesMember.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="src\fragShader_Color.glsl" />
