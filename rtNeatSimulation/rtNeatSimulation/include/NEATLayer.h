@@ -1,6 +1,12 @@
 #pragma once
 #include "Layer.h"
 #include "SpeciesMember.h"
+#include "NeatController.h"
+#include "../Collidable.h"
+
+//#include <tinyneat.hpp> -- Will take work to fix...
+#include <vector>
+#include <neatmain.h>
 
 struct NEATLayer : public Layer
 {
@@ -12,11 +18,12 @@ public:
 	void Render(ShaderLibrary& shaderLibrary, Renderer& renderer, SDL_Window* window) override;
 private:
 	SDL_Event m_windowEvent;
-
+	NeatController m_neatController;
+	
 	std::shared_ptr<Camera> m_camera;
 
 	std::shared_ptr<GameObject> m_grassPlane;
-	std::shared_ptr<SpeciesMember> m_SpeciesMember;
+	//std::vector<std::shared_ptr<SpeciesMember>> m_SpeciesMembers;
 
 	const float WIDTH = 800;
 	const float HEIGHT = 800;

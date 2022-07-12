@@ -31,8 +31,17 @@ void NEATLayer::Init()
 	};
 
 	m_grassPlane = std::make_shared<GameObject>(planeVertices, planeIndices, "./data/textures/grass.png");
-	m_SpeciesMember = std::make_shared<SpeciesMember>();
-	m_SpeciesMember->SetPosition(glm::vec3(140, 140, -90));
+	//m_neatController.GetPopulation().push_back(std::make_shared<SpeciesMember>());
+	//m_neatController.GetPopulation()[0]->SetPosition(glm::vec3(140, 140, -90));
+
+
+	//for(int member_count = 1; member_count < 100; ++member_count)
+	//{
+	//	m_neatController.GetPopulation().push_back(std::make_shared<SpeciesMember>());
+	//	// Set the X and Y location ro a random number between -50 and 600
+	//	m_neatController.GetPopulation()[member_count]->SetPosition(glm::vec3(rand() % 600 - 50, rand() % 600 - 50, -90));
+	//}
+	m_neatController.Init();
 }
 
 void NEATLayer::Update(float deltaTime, bool& running){
@@ -61,13 +70,13 @@ void NEATLayer::Update(float deltaTime, bool& running){
 				m_camera->ProcessKeyboard(BACKWARD, deltaTime);
 				break;
 			case SDLK_w:
-				m_SpeciesMember->SetSpeed(0.2f);
+				m_neatController.GetPopulation()[0]->SetSpeed(0.2f);
 				break;
 			case SDLK_a:
-				m_SpeciesMember->SetRotation(m_SpeciesMember->GetRotation() + 0.1);
+				m_neatController.GetPopulation()[0]->SetRotation(m_neatController.GetPopulation()[0]->GetRotation() + 0.1);
 				break;
 			case SDLK_d:
-				m_SpeciesMember->SetRotation(m_SpeciesMember->GetRotation() - 0.1);
+				m_neatController.GetPopulation()[0]->SetRotation(m_neatController.GetPopulation()[0]->GetRotation() - 0.1);
 				break;
 
 			default:
@@ -78,7 +87,7 @@ void NEATLayer::Update(float deltaTime, bool& running){
 			switch (m_windowEvent.key.keysym.sym)
 			{
 			case SDLK_w:
-				m_SpeciesMember->SetSpeed(0.f);
+				m_neatController.GetPopulation()[0]->SetSpeed(0.f);
 				break;
 
 			default:
@@ -90,7 +99,17 @@ void NEATLayer::Update(float deltaTime, bool& running){
 		}
 	}
 
-	m_SpeciesMember->Update(deltaTime);
+	for(auto member : m_neatController.GetPopulation())
+	{
+		member->Update(deltaTime);
+
+		for (auto trigger : trigger_list) {
+			if (trigger->CheckCollision(member)) {
+				trigger->onCollision(member);
+			}
+		}
+		
+	}
 }
 
 void NEATLayer::Render(ShaderLibrary& shaderLibrary, Renderer& renderer, SDL_Window* window){
@@ -124,8 +143,8 @@ void NEATLayer::Render(ShaderLibrary& shaderLibrary, Renderer& renderer, SDL_Win
 	projectionLoc = glGetUniformLocation(shaderLibrary.GetProgramID(ShaderLibrary::SHADER_TYPE::TEXT), "projection");
 	glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(text_ortho));
 
-	std::string xPos = std::to_string(m_SpeciesMember->GetForward().x);
-	std::string yPos = std::to_string(m_SpeciesMember->GetForward().y);
+	std::string xPos = std::to_string(m_neatController.GetPopulation()[0]->GetPosition().x);
+	std::string yPos = std::to_string(m_neatController.GetPopulation()[0]->GetPosition().y);
 
 	renderer.render_text(shaderLibrary, ShaderLibrary::SHADER_TYPE::TEXT, xPos, 0.f, HEIGHT - 50, 1.f, glm::vec4(255, 0, 0, 1));
 	renderer.render_text(shaderLibrary, ShaderLibrary::SHADER_TYPE::TEXT, yPos, 0.f, HEIGHT - 100, 1.f, glm::vec4(255, 0, 0, 1));
@@ -134,15 +153,32 @@ void NEATLayer::Render(ShaderLibrary& shaderLibrary, Renderer& renderer, SDL_Win
 	shaderLibrary.Use(ShaderLibrary::SHADER_TYPE::COLOR);
 	viewLoc = glGetUniformLocation(shaderLibrary.GetProgramID(ShaderLibrary::SHADER_TYPE::COLOR), "view");
 	projectionLoc = glGetUniformLocation(shaderLibrary.GetProgramID(ShaderLibrary::SHADER_TYPE::COLOR), "projection");
+	
+	GLint colorLoc = glGetUniformLocation(shaderLibrary.GetProgramID(ShaderLibrary::SHADER_TYPE::COLOR), "color");
 
 	glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(m_camera->getViewMat()));
 	glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(m_camera->getProjectionMat()));
 
-	glm::mat4 model = glm::mat4(1);
-	model = glm::translate(model, m_SpeciesMember->GetPosition());
-	model = glm::rotate(model, m_SpeciesMember->GetRotation() - glm::pi<float>()/2, glm::vec3(0, 0, 1)); // Take away pi/2 from intial value to correct for rotation 0 pointing in the positive Y
-	model = glm::scale(model, glm::vec3(20));
-	renderer.render(shaderLibrary, ShaderLibrary::SHADER_TYPE::COLOR, m_SpeciesMember, model);
+	for (auto member : m_neatController.GetPopulation()) {
+		glm::mat4 model = glm::mat4(1);
+		model = glm::translate(model, member->GetPosition());
+		model = glm::rotate(model, member->GetRotation() - glm::pi<float>() / 2, glm::vec3(0, 0, 1)); // Take away pi/2 from intial value to correct for rotation 0 pointing in the positive Y
+		model = glm::scale(model, glm::vec3(20));
+		
+		if (member->CalculateFitness() > 1) {
+			glUniform3f(colorLoc, 0, 1, 0);
+		}
+		else {
+			glUniform3f(colorLoc, 1, 0, 0);
+		}
+		renderer.render(shaderLibrary, ShaderLibrary::SHADER_TYPE::COLOR, member, model);
+	}
+	
+	//glm::mat4 model = glm::mat4(1);
+	//model = glm::translate(model, m_SpeciesMember->GetPosition());
+	//model = glm::rotate(model, m_SpeciesMember->GetRotation() - glm::pi<float>()/2, glm::vec3(0, 0, 1)); // Take away pi/2 from intial value to correct for rotation 0 pointing in the positive Y
+	//model = glm::scale(model, glm::vec3(20));
+	//renderer.render(shaderLibrary, ShaderLibrary::SHADER_TYPE::COLOR, m_SpeciesMember, model);
 
 	SDL_GL_SwapWindow(window);
 }

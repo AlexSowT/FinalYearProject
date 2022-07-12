@@ -88,7 +88,7 @@ int main(int argc, char* argv[])
 	// Reference: https://gamedev.stackexchange.com/questions/110825/how-to-calculate-delta-time-with-sdl 
 	Uint64 NOW = SDL_GetPerformanceCounter();
 	Uint64 LAST = 0;
-	double deltaTime = 0;
+	float deltaTime = 0;
 
 	// MAIN GAME LOOP
 	while (RUNNING)
@@ -97,7 +97,7 @@ int main(int argc, char* argv[])
 		LAST = NOW;
 		NOW = SDL_GetPerformanceCounter();
 
-		deltaTime = (double)((NOW - LAST) * 1000 / (double)SDL_GetPerformanceFrequency());
+		deltaTime = (float)((NOW - LAST) * 1000 / (float)SDL_GetPerformanceFrequency());
 
 		// Update to fixed time update for more control
 

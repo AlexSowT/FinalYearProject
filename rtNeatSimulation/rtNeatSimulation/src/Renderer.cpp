@@ -104,6 +104,9 @@ void Renderer::render(ShaderLibrary shaderLibrary, ShaderLibrary::SHADER_TYPE ty
 	GLint modelLoc = glGetUniformLocation(shaderLibrary.GetProgramID(type), "model");
 	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(transformation));
 
+	GLint colorLoc = glGetUniformLocation(shaderLibrary.GetProgramID(type), "color");
+	glUniformMatrix4fv(colorLoc, 1, GL_FALSE, glm::value_ptr(glm::vec3(0, 1, 0)));
+
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
 	glBindVertexArray(0);

@@ -16,6 +16,9 @@
     <Filter Include="Source Files\shaders">
       <UniqueIdentifier>{e38ac3f0-c158-4fc4-8300-5f7705e1db37}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\neat">
+      <UniqueIdentifier>{559ccb52-9a8e-4acd-a6a1-04a798cb22cc}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">
@@ -35,6 +38,18 @@
     </ClCompile>
     <ClCompile Include="src\SpeciesMember.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Connection.cpp">
+      <Filter>Source Files\neat</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NeatController.cpp">
+      <Filter>Source Files\neat</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Genome.cpp">
+      <Filter>Source Files\neat</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Node.cpp">
+      <Filter>Source Files\neat</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -57,6 +72,24 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\SpeciesMember.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Connection.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\NeatController.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Genome.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Node.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FitnessObject.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Collidable.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
