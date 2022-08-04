@@ -157,8 +157,8 @@
     <ClCompile Include="src\SpeciesMember.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Collidable.h" />
-    <ClInclude Include="FitnessObject.h" />
+    <ClInclude Include="include\Collidable.h" />
+    <ClInclude Include="include\FitnessObject.h" />
     <ClInclude Include="include\Camera.h" />
     <ClInclude Include="include\Connection.h" />
     <ClInclude Include="include\GameObject.h" />

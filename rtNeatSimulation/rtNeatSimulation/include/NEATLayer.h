@@ -2,7 +2,7 @@
 #include "Layer.h"
 #include "SpeciesMember.h"
 #include "NeatController.h"
-#include "../Collidable.h"
+#include "Collidable.h"
 
 //#include <tinyneat.hpp> -- Will take work to fix...
 #include <vector>
@@ -23,6 +23,7 @@ private:
 	std::shared_ptr<Camera> m_camera;
 
 	std::shared_ptr<GameObject> m_grassPlane;
+	std::vector<std::shared_ptr<Collidable>> m_triggers;
 	//std::vector<std::shared_ptr<SpeciesMember>> m_SpeciesMembers;
 
 	const float WIDTH = 800;

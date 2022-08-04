@@ -103,9 +103,9 @@ void NEATLayer::Update(float deltaTime, bool& running){
 	{
 		member->Update(deltaTime);
 
-		for (auto trigger : trigger_list) {
+		for (auto trigger : m_triggers) {
 			if (trigger->CheckCollision(member)) {
-				trigger->onCollision(member);
+				trigger->OnCollision(member);
 			}
 		}
 		

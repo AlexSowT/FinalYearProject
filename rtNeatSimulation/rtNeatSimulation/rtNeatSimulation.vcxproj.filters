@@ -86,10 +86,10 @@
     <ClInclude Include="include\Node.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="FitnessObject.h">
+    <ClInclude Include="include\FitnessObject.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Collidable.h">
+    <ClInclude Include="include\Collidable.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

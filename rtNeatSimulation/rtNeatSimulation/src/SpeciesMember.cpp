@@ -1,6 +1,6 @@
 #include <SpeciesMember.h>
 
-SpeciesMember::SpeciesMember() : GameObject()
+SpeciesMember::SpeciesMember() : GameObject(), Collidable(COLLIDABLE_TAG::ENTITY)
 {
 	const std::vector<glm::vec3> vertices =
 	{
